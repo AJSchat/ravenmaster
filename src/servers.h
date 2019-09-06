@@ -1,23 +1,23 @@
 /*
-	servers.h
+    servers.h
 
-	Server list and address mapping management for dpmaster
+    Server list and address mapping management for dpmaster
 
-	Copyright (C) 2004-2010  Mathieu Olivier
+    Copyright (C) 2004-2010  Mathieu Olivier
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 
@@ -52,38 +52,38 @@
 // Address mapping
 typedef struct addrmap_s
 {
-	struct addrmap_s* next;
-	struct sockaddr_in from;
-	struct sockaddr_in to;
-	char* from_string;
-	char* to_string;
+    struct addrmap_s* next;
+    struct sockaddr_in from;
+    struct sockaddr_in to;
+    char* from_string;
+    char* to_string;
 } addrmap_t;
 
 // Server state
 typedef enum
 {
-	sv_state_unused_slot,
-	sv_state_uninitialized,
-	sv_state_empty,
-	sv_state_occupied,
-	sv_state_full,
+    sv_state_unused_slot,
+    sv_state_uninitialized,
+    sv_state_empty,
+    sv_state_occupied,
+    sv_state_full,
 } server_state_t;
 
 // Server properties
-struct game_properties_s;		// Defined in games.h
+struct game_properties_s;       // Defined in games.h
 typedef struct server_s
 {
-	user_t user;										// WARNING: MUST be the 1st member, for compatibility with the user hash tables
-	const struct addrmap_s* addrmap;
-	const struct game_properties_s* anon_properties;	// game properties, for an anonymous game
-	const struct game_properties_s* hb_properties;		// future "anon_properties", not yet validated by an infoResponse
-	time_t timeout;
-	time_t challenge_timeout;
-	int protocol;
-	server_state_t state;
-	char challenge [CHALLENGE_MAX_LENGTH];
-	char gametype [GAMETYPE_LENGTH];
-	char gamename [GAMENAME_LENGTH];
+    user_t user;                                        // WARNING: MUST be the 1st member, for compatibility with the user hash tables
+    const struct addrmap_s* addrmap;
+    const struct game_properties_s* anon_properties;    // game properties, for an anonymous game
+    const struct game_properties_s* hb_properties;      // future "anon_properties", not yet validated by an infoResponse
+    time_t timeout;
+    time_t challenge_timeout;
+    int protocol;
+    server_state_t state;
+    char challenge [CHALLENGE_MAX_LENGTH];
+    char gametype [GAMETYPE_LENGTH];
+    char gamename [GAMENAME_LENGTH];
 } server_t;
 
 

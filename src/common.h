@@ -1,23 +1,23 @@
 /*
-	common.h
+    common.h
 
-	Common header file for dpmaster
+    Common header file for dpmaster
 
-	Copyright (C) 2004-2011  Mathieu Olivier
+    Copyright (C) 2004-2011  Mathieu Olivier
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 
@@ -40,15 +40,15 @@
 
 
 #ifdef WIN32
-#	include <winsock2.h>
-#	include <ws2tcpip.h>
+#   include <winsock2.h>
+#   include <ws2tcpip.h>
 #else
-#	include <pwd.h>
-#	include <unistd.h>
-#	include <netinet/in.h>
-#	include <arpa/inet.h>
-#	include <netdb.h>
-#	include <sys/socket.h>
+#   include <pwd.h>
+#   include <unistd.h>
+#   include <netinet/in.h>
+#   include <arpa/inet.h>
+#   include <netdb.h>
+#   include <sys/socket.h>
 #endif
 
 
@@ -71,53 +71,53 @@ typedef unsigned char qbyte;
 // The various messages levels
 typedef enum
 {
-	MSG_NOPRINT,	// used by "max_msg_level" (= no printings)
-	MSG_ERROR,		// errors
-	MSG_WARNING,	// warnings
-	MSG_NORMAL,		// standard messages
-	MSG_DEBUG		// for debugging purpose
+    MSG_NOPRINT,    // used by "max_msg_level" (= no printings)
+    MSG_ERROR,      // errors
+    MSG_WARNING,    // warnings
+    MSG_NORMAL,     // standard messages
+    MSG_DEBUG       // for debugging purpose
 } msg_level_t;
 
 // Command line option
 typedef struct
 {
-	const char* long_name;		// if NULL, this is the end of the list
-	const char* help_syntax;	// help string printed by PrintHelp (syntax)
-	const char* help_desc;		// help string printed by PrintHelp (description)
-	int	help_param [2];			// optional parameters for the "help_desc" string
-	char short_name;			// may be '\0' if it has no short name
-	unsigned int min_params;	// minimum number of parameters for this option
-	unsigned int max_params;	// maximum number of parameters for this option
+    const char* long_name;      // if NULL, this is the end of the list
+    const char* help_syntax;    // help string printed by PrintHelp (syntax)
+    const char* help_desc;      // help string printed by PrintHelp (description)
+    int help_param [2];         // optional parameters for the "help_desc" string
+    char short_name;            // may be '\0' if it has no short name
+    unsigned int min_params;    // minimum number of parameters for this option
+    unsigned int max_params;    // maximum number of parameters for this option
 }  cmdlineopt_t;
 
 // Command line status
 typedef enum
 {
-	CMDLINE_STATUS_OK,
-	CMDLINE_STATUS_SHOW_HELP,
-	CMDLINE_STATUS_SHOW_GAME_PROPERTIES,
+    CMDLINE_STATUS_OK,
+    CMDLINE_STATUS_SHOW_HELP,
+    CMDLINE_STATUS_SHOW_GAME_PROPERTIES,
 
-	// Errors
-	CMDLINE_STATUS_INVALID_OPT,
-	CMDLINE_STATUS_NOT_ENOUGH_OPT_PARAMS,
-	CMDLINE_STATUS_TOO_MUCH_OPT_PARAMS,
-	CMDLINE_STATUS_INVALID_OPT_PARAMS,
-	CMDLINE_STATUS_NOT_ENOUGH_MEMORY,
+    // Errors
+    CMDLINE_STATUS_INVALID_OPT,
+    CMDLINE_STATUS_NOT_ENOUGH_OPT_PARAMS,
+    CMDLINE_STATUS_TOO_MUCH_OPT_PARAMS,
+    CMDLINE_STATUS_INVALID_OPT_PARAMS,
+    CMDLINE_STATUS_NOT_ENOUGH_MEMORY,
 } cmdline_status_t;
 
 // User (client or server)
 typedef struct user_s
 {
-	struct sockaddr_storage address;
-	socklen_t addrlen;
-	struct user_s* next;
-	struct user_s** prev_ptr;
+    struct sockaddr_storage address;
+    socklen_t addrlen;
+    struct user_s* next;
+    struct user_s** prev_ptr;
 } user_t;
 
 // Hash table for users
 typedef struct user_hash_table_s
 {
-	user_t** entries;
+    user_t** entries;
 } user_hash_table_t;
 
 
@@ -143,8 +143,8 @@ extern qboolean hash_ports;
 
 // Initialize a user hash table
 qboolean Com_UserHashTable_Init (user_hash_table_t* table,
-								 size_t hash_size,
-								 const char* table_name);
+                                 size_t hash_size,
+                                 const char* table_name);
 
 // Add a user to the hash table
 void Com_UserHashTable_Add (user_hash_table_t* table, user_t* user, unsigned int hash);

@@ -1,23 +1,23 @@
 /*
-	system.h
+    system.h
 
-	System specific code for dpmaster
+    System specific code for dpmaster
 
-	Copyright (C) 2008-2011  Mathieu Olivier
+    Copyright (C) 2008-2011  Mathieu Olivier
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 
@@ -29,9 +29,9 @@
 
 // The default name of the log file
 #ifdef WIN32
-#	define DEFAULT_LOG_FILE "dpmaster.log"
+#   define DEFAULT_LOG_FILE "dpmaster.log"
 #else
-#	define DEFAULT_LOG_FILE "/var/log/dpmaster.log"
+#   define DEFAULT_LOG_FILE "/var/log/dpmaster.log"
 #endif
 
 // The maximum number of listening sockets
@@ -42,29 +42,29 @@
 
 // Network errors code
 #ifdef WIN32
-#	define NETERR_AFNOSUPPORT	WSAEAFNOSUPPORT
-#	define NETERR_NOPROTOOPT	WSAENOPROTOOPT
-#	define NETERR_INTR			WSAEINTR
+#   define NETERR_AFNOSUPPORT   WSAEAFNOSUPPORT
+#   define NETERR_NOPROTOOPT    WSAENOPROTOOPT
+#   define NETERR_INTR          WSAEINTR
 #else
-#	define NETERR_AFNOSUPPORT	EAFNOSUPPORT
-#	define NETERR_NOPROTOOPT	ENOPROTOOPT
-#	define NETERR_INTR			EINTR
+#   define NETERR_AFNOSUPPORT   EAFNOSUPPORT
+#   define NETERR_NOPROTOOPT    ENOPROTOOPT
+#   define NETERR_INTR          EINTR
 #endif
 
 // Windows' CRT wants an explicit buffer size for its setvbuf() calls
 #ifndef WIN32
-#	define SETVBUF_DEFAULT_SIZE 0
+#   define SETVBUF_DEFAULT_SIZE 0
 #else
-#	define SETVBUF_DEFAULT_SIZE 4096
+#   define SETVBUF_DEFAULT_SIZE 4096
 #endif
 
 // Value used to specify an invalid socket
 #ifndef WIN32
-#	define INVALID_SOCKET (-1)
+#   define INVALID_SOCKET (-1)
 #endif
 
 #ifndef MAX_PATH
-#	define MAX_PATH PATH_MAX
+#   define MAX_PATH PATH_MAX
 #endif
 
 // ---------- Public types ---------- //
@@ -79,19 +79,19 @@ typedef int socket_t;
 // Listening socket
 typedef struct
 {
-	socket_t socket;
-	socklen_t local_addr_len;
-	const char* local_addr_name;
-	struct sockaddr_storage local_addr;
-	qboolean optional;
+    socket_t socket;
+    socklen_t local_addr_len;
+    const char* local_addr_name;
+    struct sockaddr_storage local_addr;
+    qboolean optional;
 } listen_socket_t;
 
 // The steps for running as a daemon (no console output)
 typedef enum
 {
-	DAEMON_STATE_NO,
-	DAEMON_STATE_REQUEST,
-	DAEMON_STATE_EFFECTIVE,
+    DAEMON_STATE_NO,
+    DAEMON_STATE_REQUEST,
+    DAEMON_STATE_EFFECTIVE,
 } daemon_state_t;
 
 

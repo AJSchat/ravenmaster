@@ -1,24 +1,24 @@
 /*
-	clients.h
+    clients.h
 
-	Client list and flood protection for dpmaster
+    Client list and flood protection for dpmaster
 
-	Copyright (C) 2010  Timothee Besset
-	Copyright (C) 2010  Mathieu Olivier
+    Copyright (C) 2010  Timothee Besset
+    Copyright (C) 2010  Mathieu Olivier
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 
@@ -35,8 +35,8 @@
 #define DEFAULT_CL_HASH_SIZE 7
 
 // Allow "throttle - 1" queries in a row, then force a throttle to one every "decay time" seconds
-#define DEFAULT_FP_DECAY_TIME	3
-#define DEFAULT_FP_THROTTLE		5
+#define DEFAULT_FP_DECAY_TIME   3
+#define DEFAULT_FP_THROTTLE     5
 
 
 // ---------- Public variables ---------- //
