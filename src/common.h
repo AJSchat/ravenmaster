@@ -120,6 +120,13 @@ typedef struct user_hash_table_s
     user_t** entries;
 } user_hash_table_t;
 
+// All ports (one or more per game) to listen on
+typedef struct listen_ports_s
+{
+    const char*                 port;
+    struct listen_ports_s*      next;
+} listen_ports_t;
+
 
 // ---------- Public variables ---------- //
 

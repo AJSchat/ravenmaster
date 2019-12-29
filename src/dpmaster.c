@@ -205,15 +205,6 @@ static const cmdlineopt_t cmdline_options [] =
         1
     },
     {
-        "port",
-        "<port_num>",
-        "Default network port (default value: %d)",
-        { DEFAULT_MASTER_PORT, 0 },
-        'p',
-        1,
-        1
-    },
-    {
         "verbose",
         "[verbose_lvl]",
         "Verbose level, up to %d (default: %d; no value means max)",
@@ -278,14 +269,14 @@ We need this intermediate step because DNS requests may not be able to resolve
 after the security initializations, due to chroot.
 ====================
 */
-static qboolean UnsecureInit (void)
+static qboolean UnsecureInit (listen_ports_t* listen_ports)
 {
     // Resolve the address mapping list
     if (! Sv_ResolveAddressMappings ())
         return false;
 
     // Resolve the listening socket addresses
-    if (! Sys_ResolveListenAddresses ())
+    if (! Sys_ResolveListenAddresses (listen_ports))
         return false;
 
     return true;
@@ -500,21 +491,6 @@ static cmdline_status_t Cmdline_Option (const cmdlineopt_t* opt, const char** pa
 
         if (! Sv_SetMaxNbServersPerAddress (max_per_address))
             return CMDLINE_STATUS_INVALID_OPT_PARAMS;
-    }
-
-    // Port number
-    else if (strcmp (opt_name, "port") == 0)
-    {
-        const char* start_ptr;
-        char* end_ptr;
-        unsigned short port_num;
-
-        start_ptr = params[0];
-        port_num = (unsigned short)strtol (start_ptr, &end_ptr, 0);
-        if (end_ptr == start_ptr || *end_ptr != '\0' || port_num == 0)
-            return CMDLINE_STATUS_INVALID_OPT_PARAMS;
-
-        master_port = port_num;
     }
 
     // Verbose level
@@ -943,7 +919,9 @@ Main function
 */
 int main (int argc, const char* argv [])
 {
-    cmdline_status_t valid_options;
+    cmdline_status_t    valid_options;
+    listen_ports_t*     listen_ports;
+    listen_ports_t*     port_ind;
 
     // Game properties must be initialized first, since the user
     // may modify them using the command line's arguments
@@ -975,6 +953,9 @@ int main (int argc, const char* argv [])
         return EXIT_FAILURE;
     }
 
+    // Get any ports to listen on
+    port_ind = listen_ports = Game_GetPorts();
+
     // Start the log if necessary
     if (! Com_UpdateLogStatus (true))
         return EXIT_FAILURE;
@@ -983,10 +964,18 @@ int main (int argc, const char* argv [])
     print_date = true;
 
     // Initializations
-    if (! Sys_UnsecureInit () || ! UnsecureInit () ||
+    if (! Sys_UnsecureInit () || ! UnsecureInit (listen_ports) ||
         ! Sys_SecurityInit () ||
         ! Sys_SecureInit () || ! SecureInit ())
         return EXIT_FAILURE;
+
+    // Free listening ports
+    while (port_ind != NULL)
+    {
+        listen_ports = port_ind;
+        port_ind = listen_ports->next;
+        free (listen_ports);
+    }
 
     // Until the end of times...
     for (;;)

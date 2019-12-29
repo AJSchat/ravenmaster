@@ -34,11 +34,11 @@
 #   define DEFAULT_LOG_FILE "/var/log/dpmaster.log"
 #endif
 
-// The maximum number of listening sockets
-#define MAX_LISTEN_SOCKETS 8
+// The maximum number of listening addresses
+#define MAX_LISTEN_ADDRESSES    4
 
-// Default master port
-#define DEFAULT_MASTER_PORT 27950
+// The maximum number of listening sockets
+#define MAX_LISTEN_SOCKETS      8 * MAX_LISTEN_ADDRESSES
 
 // Network errors code
 #ifdef WIN32
@@ -76,12 +76,19 @@ typedef u_short sa_family_t;
 typedef int socket_t;
 #endif
 
+// Listening address
+typedef struct
+{
+    const char* local_addr_name;
+} listen_address_t;
+
 // Listening socket
 typedef struct
 {
     socket_t socket;
     socklen_t local_addr_len;
     const char* local_addr_name;
+    const char* local_addr_name_no_port;    // Without any port
     struct sockaddr_storage local_addr;
     qboolean optional;
 } listen_socket_t;
@@ -97,12 +104,13 @@ typedef enum
 
 // ---------- Public variables ---------- //
 
+// The listening addresses
+extern unsigned int nb_addresses;
+extern listen_address_t listen_addresses [MAX_LISTEN_ADDRESSES];
+
 // The listening sockets
 extern unsigned int nb_sockets;
 extern listen_socket_t listen_sockets [MAX_LISTEN_SOCKETS];
-
-// The port we use dy default
-extern unsigned short master_port;
 
 // System specific command line options
 extern const cmdlineopt_t sys_cmdline_options [];
@@ -117,7 +125,7 @@ extern daemon_state_t daemon_state;
 qboolean Sys_DeclareListenAddress (const char* local_addr_name);
 
 // Step 2 - Resolve the address names of all the listening sockets
-qboolean Sys_ResolveListenAddresses (void);
+qboolean Sys_ResolveListenAddresses (listen_ports_t* listen_ports);
 
 // Step 3 - Create the listening sockets
 qboolean Sys_CreateListenSockets (void);

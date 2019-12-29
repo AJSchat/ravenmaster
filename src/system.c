@@ -56,12 +56,13 @@ static int null_device = -1;
 
 // ---------- Public variables ---------- //
 
+// The master addresses
+unsigned int nb_addresses = 0;
+listen_address_t listen_addresses [MAX_LISTEN_ADDRESSES];
+
 // The master sockets
 unsigned int nb_sockets = 0;
 listen_socket_t listen_sockets [MAX_LISTEN_SOCKETS];
-
-// The port we use by default
-unsigned short master_port = DEFAULT_MASTER_PORT;
 
 // System specific command line options
 const cmdlineopt_t sys_cmdline_options [] =
@@ -164,18 +165,9 @@ static qboolean Sys_BuildSockaddr (const char* addr_name, const char* port_name,
                                    struct sockaddr_storage* sock_address,
                                    socklen_t* sock_address_len)
 {
-    char port_buff [8];
-    struct addrinfo hints;
-    struct addrinfo* addrinf = NULL;
+    struct addrinfo     hints;
+    struct addrinfo*    addrinf = NULL;
     int err;
-
-    // If there is no port, use the default one
-    if (port_name == NULL)
-    {
-        snprintf (port_buff, sizeof (port_buff), "%hu", master_port);
-        port_buff[sizeof (port_buff) - 1] = '\0';
-        port_name = port_buff;
-    }
 
     memset(&hints, 0, sizeof (hints));
     hints.ai_family = addr_family_hint;
@@ -210,12 +202,13 @@ Resolve an address
 ====================
 */
 static qboolean Sys_StringToSockaddr (const char* address,
+                                      const char* port_name,
                                       struct sockaddr_storage* sock_address,
-                                      socklen_t* sock_address_len)
+                                      socklen_t* sock_address_len,
+                                      const char **address_no_port)
 {
     const char* addr_start;
     const char* addr_end = NULL;
-    const char* port_name = NULL;
     int addr_family = AF_UNSPEC;
     size_t addr_length;
     char addr_buff [128];
@@ -241,9 +234,6 @@ static qboolean Sys_StringToSockaddr (const char* address,
             return false;
         }
 
-        if (end_bracket[1] == ':')
-            port_name = end_bracket + 2;
-
         addr_family = AF_INET6;
         addr_start = &address[1];
         addr_end = end_bracket;
@@ -265,7 +255,6 @@ static qboolean Sys_StringToSockaddr (const char* address,
             if (last_colon == NULL)
             {
                 addr_end = first_colon;
-                port_name = first_colon + 1;
             }
             else
                 addr_family = AF_INET6;
@@ -291,6 +280,11 @@ static qboolean Sys_StringToSockaddr (const char* address,
     memcpy (addr_buff, addr_start, addr_length);
     addr_buff[addr_length] = '\0';
 
+    // Check if we need to store the address without appended port
+    if (address_no_port != NULL){
+        *address_no_port = strdup(addr_buff);
+    }
+
     return Sys_BuildSockaddr (addr_buff, port_name, addr_family, sock_address, sock_address_len);
 }
 
@@ -301,26 +295,25 @@ static qboolean Sys_StringToSockaddr (const char* address,
 ====================
 Sys_DeclareListenAddress
 
-Step 1 - Add a listen socket to the listening socket list
+Step 1 - Add a listen address to the listening address list
 ====================
 */
 qboolean Sys_DeclareListenAddress (const char* local_addr_name)
 {
-    if (nb_sockets < MAX_LISTEN_SOCKETS)
+    if (nb_addresses < MAX_LISTEN_ADDRESSES)
     {
-        listen_socket_t* listen_sock = &listen_sockets[nb_sockets];
+        listen_address_t* listen_address = &listen_addresses[nb_addresses];
 
-        memset (listen_sock, 0, sizeof (*listen_sock));
-        listen_sock->socket = INVALID_SOCKET;
-        listen_sock->local_addr_name = local_addr_name;
+        memset (listen_address, 0, sizeof (*listen_address));
+        listen_address->local_addr_name = local_addr_name;
 
-        nb_sockets++;
+        nb_addresses++;
         return true;
     }
     else
         Com_Printf (MSG_ERROR,
                     "> ERROR: too many listening addresses (max: %d)\n",
-                    MAX_LISTEN_SOCKETS);
+                    MAX_LISTEN_ADDRESSES);
 
     return false;
 }
@@ -333,40 +326,75 @@ Sys_ResolveListenAddresses
 Step 2 - Resolve the address names of all the listening sockets
 ====================
 */
-qboolean Sys_ResolveListenAddresses (void)
+qboolean Sys_ResolveListenAddresses (listen_ports_t* listen_ports)
 {
+    listen_ports_t* port_ind;
+    unsigned int    nb_listen_ports;
+
+    // Determine number of listen ports
+    port_ind            = listen_ports;
+    nb_listen_ports     = 0;
+
+    while (port_ind != NULL)
+    {
+        nb_listen_ports++;
+        port_ind = port_ind->next;
+    }
+
     // If nothing to resolve, add the local IPv4 & IPv6 addresses
-    if (nb_sockets == 0)
+    if (nb_addresses == 0)
     {
         const sa_family_t addr_families [] = { AF_INET, AF_INET6 };
-        const unsigned int nb_addrs = sizeof (addr_families) / sizeof (addr_families[0]);
+        const unsigned int nb_addr_families = sizeof (addr_families) / sizeof (addr_families[0]);
         unsigned int addr_ind;
 
-        memset (listen_sockets, 0, sizeof (listen_sockets[0]) * nb_addrs);
+        memset (listen_sockets, 0, sizeof (listen_sockets[0]) * nb_addr_families * nb_listen_ports);
 
-        for (addr_ind = 0; addr_ind < nb_addrs; addr_ind++)
+        for (addr_ind = 0; addr_ind < nb_addr_families; addr_ind++)
         {
-            if (! Sys_BuildSockaddr (NULL, NULL, addr_families[addr_ind],
-                                     &listen_sockets[addr_ind].local_addr,
-                                     &listen_sockets[addr_ind].local_addr_len))
-                return false;
+            port_ind = listen_ports;
+            while (port_ind != NULL)
+            {
+                listen_socket_t* listen_sock = &listen_sockets[nb_sockets];
 
-            listen_sockets[addr_ind].optional = true;
-            nb_sockets++;
+                if (! Sys_BuildSockaddr (NULL, port_ind->port,
+                                         addr_families[addr_ind],
+                                         &listen_sock->local_addr,
+                                         &listen_sock->local_addr_len))
+                    return false;
+
+                listen_sock->optional = true;
+
+                port_ind = port_ind->next;
+                nb_sockets++;
+            }
         }
     }
     else
     {
-        unsigned int sock_ind;
+        unsigned int addr_ind;
 
-        for (sock_ind = 0; sock_ind < nb_sockets; sock_ind++)
+        for (addr_ind = 0; addr_ind < nb_addresses; addr_ind++)
         {
-            listen_socket_t* listen_sock = &listen_sockets[sock_ind];
+            listen_address_t* listen_address = &listen_addresses[addr_ind];
 
-            if (! Sys_StringToSockaddr (listen_sock->local_addr_name,
-                                        &listen_sock->local_addr,
-                                        &listen_sock->local_addr_len))
-                return false;
+            port_ind = listen_ports;
+            while (port_ind != NULL)
+            {
+                listen_socket_t* listen_sock = &listen_sockets[nb_sockets];
+
+                if (! Sys_StringToSockaddr (listen_address->local_addr_name,
+                                            port_ind->port,
+                                            &listen_sock->local_addr,
+                                            &listen_sock->local_addr_len,
+                                            &listen_sock->local_addr_name_no_port))
+                    return false;
+
+                listen_sock->local_addr_name = listen_address->local_addr_name;
+
+                port_ind = port_ind->next;
+                nb_sockets++;
+            }
         }
     }
 
@@ -390,6 +418,7 @@ qboolean Sys_CreateListenSockets (void)
         listen_socket_t* listen_sock = &listen_sockets[sock_ind];
         socket_t crt_sock;
         int addr_family;
+        const char* addr_str;
 
         addr_family = listen_sock->local_addr.ss_family;
         crt_sock = socket (addr_family, SOCK_DGRAM, IPPROTO_UDP);
@@ -442,19 +471,19 @@ qboolean Sys_CreateListenSockets (void)
 #endif
         }
 
+        addr_str = Sys_SockaddrToString(&listen_sock->local_addr,
+                                        listen_sock->local_addr_len);
+
         if (listen_sock->local_addr_name != NULL)
         {
-            const char* addr_str;
-
-            addr_str = Sys_SockaddrToString(&listen_sock->local_addr,
-                                            listen_sock->local_addr_len);
             Com_Printf (MSG_NORMAL, "> Listening on address %s (%s)\n",
-                        listen_sock->local_addr_name,
+                        listen_sock->local_addr_name_no_port,
                         addr_str);
         }
         else
-            Com_Printf (MSG_NORMAL, "> Listening on all %s addresses\n",
-                        addr_family == AF_INET6 ? "IPv6" : "IPv4");
+            Com_Printf (MSG_NORMAL, "> Listening on all %s addresses (%s)\n",
+                        addr_family == AF_INET6 ? "IPv6" : "IPv4",
+                        addr_str);
 
         if (bind (crt_sock, (struct sockaddr*)&listen_sock->local_addr,
                   listen_sock->local_addr_len) != 0)

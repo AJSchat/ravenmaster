@@ -61,10 +61,18 @@ typedef enum
     NB_HEARTBEAT_TYPES,
 } heartbeat_type_t;
 
+typedef enum
+{
+    PORT_TYPE_MAIN,
+
+    NB_PORT_TYPES
+} port_type_t;
+
 typedef struct game_properties_s
 {
     const char*                 name;
     game_options_t              options;
+    char*                       ports [NB_PORT_TYPES];              // All ports used
     char*                       heartbeats [NB_HEARTBEAT_TYPES];    // Heartbeat tags
     struct game_properties_s*   next;
 } game_properties_t;
@@ -93,6 +101,9 @@ const game_properties_t* Game_GetPropertiesByHeartbeat (const char* heartbeat_ta
 
 // Returns the options of a game
 game_options_t Game_GetOptions (const char* game);
+
+// Returns all ports used by the defined games
+listen_ports_t* Game_GetPorts (void);
 
 
 #endif  // #ifndef _GAMES_H_

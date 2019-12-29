@@ -373,6 +373,25 @@ static void Game_RemoveHeartbeat (game_properties_t* game_props, heartbeat_type_
 
 /*
 ====================
+Game_RemovePort
+
+Remove an port from the properties of a game
+====================
+*/
+static void Game_RemovePort (game_properties_t* game_props, port_type_t port_type)
+{
+    char* port = game_props->ports[port_type];
+
+    if (port != NULL)
+    {
+        free (port);
+        game_props->ports[port_type] = NULL;
+    }
+}
+
+
+/*
+====================
 Game_UpdateHeartbeat
 
 Add or remove an heartbeat to the properties of a game
@@ -435,6 +454,27 @@ static cmdline_status_t Game_UpdateOption (game_properties_t* game_props, const 
 
 /*
 ====================
+Game_UpdatePort
+
+Add or remove a game port
+====================
+*/
+static cmdline_status_t Game_UpdatePort (game_properties_t* game_props, port_type_t port_type, const char* value)
+{
+    // You can't have more than one port for each type
+    if (game_props->ports[port_type] != NULL)
+        return CMDLINE_STATUS_INVALID_OPT_PARAMS;
+
+    game_props->ports[port_type] = strdup (value);
+    if (game_props->ports[port_type] == NULL)
+        return CMDLINE_STATUS_NOT_ENOUGH_MEMORY;
+
+    return CMDLINE_STATUS_OK;
+}
+
+
+/*
+====================
 Game_UpdateProperty
 
 Update a game property
@@ -466,6 +506,10 @@ static cmdline_status_t Game_UpdateProperty (game_properties_t* game_props, cons
         else if (strcmp (prop_name, "flatline") == 0)
         {
             Game_RemoveHeartbeat (game_props, HEARTBEAT_TYPE_DEAD);
+        }
+        else if (strcmp (prop_name, "masterport") == 0)
+        {
+            Game_RemovePort (game_props, PORT_TYPE_MAIN);
         }
         else
             return CMDLINE_STATUS_INVALID_OPT_PARAMS;
@@ -509,6 +553,10 @@ static cmdline_status_t Game_UpdateProperty (game_properties_t* game_props, cons
             if (result != CMDLINE_STATUS_OK)
                 return result;
         }
+        else if (strcmp (prop_name, "masterport") == 0)
+        {
+            Game_UpdatePort (game_props, PORT_TYPE_MAIN, next_value);
+        }
         else
             return CMDLINE_STATUS_INVALID_OPT_PARAMS;
 
@@ -542,8 +590,9 @@ void Game_InitProperties (void)
         // Quake 3 Arena
         {
             GAMENAME_Q3A,
-            2,
+            3,
             {
+                "masterport=27950",
                 "protocols=66,67,68",
                 "heartbeat=QuakeArena-1",
             },
@@ -811,4 +860,47 @@ game_options_t Game_GetOptions (const char* game)
         return props->options;
     else
         return GAME_OPTION_NONE;
+}
+
+/*
+====================
+Game_GetPorts
+
+Returns all ports used by the defined games
+====================
+*/
+listen_ports_t* Game_GetPorts (void)
+{
+    listen_ports_t*     result;
+    listen_ports_t*     port_ind;
+    game_properties_t*  props;
+    int                 i;
+
+    port_ind    = malloc (sizeof(*port_ind));
+    result      = port_ind;
+    props       = game_properties_list;
+
+    memset (port_ind, 0, sizeof(*port_ind));
+
+    while (props)
+    {
+        for (i = 0; i < NB_PORT_TYPES; i++)
+        {
+            if (props->ports[i] != NULL)
+            {
+                if (port_ind->port != NULL)
+                {
+                    port_ind->next = malloc (sizeof(*port_ind->next));
+                    port_ind = port_ind->next;
+                    memset (port_ind, 0, sizeof(*port_ind));
+                }
+
+                port_ind->port = strdup(props->ports[i]);
+            }
+        }
+
+        props = props->next;
+    }
+
+    return result;
 }
